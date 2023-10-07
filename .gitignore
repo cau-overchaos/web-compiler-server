@@ -177,3 +177,8 @@ Cargo.lock
 # Editor files
 .idea
 .vscode
+
+# server files
+/server/results/*
+/server/codes/*
+/server/*.zip

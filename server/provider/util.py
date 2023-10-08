@@ -1,5 +1,5 @@
+from config import flask_config
 import os
-import zipfile
 
 
 def clean_dir(folder_path):
@@ -9,14 +9,26 @@ def clean_dir(folder_path):
             os.remove(file_path)
 
 
-def zip_results(folder_path):
-    # 결과 파일들을 압축하여 results.zip 파일 생성
-    with zipfile.ZipFile(os.path.join(folder_path, 'results.zip'), 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for root, _, files in os.walk(folder_path):
-            for file in files:
-                file_path = os.path.join(root, file)
-                arcname = os.path.relpath(file_path, folder_path)
-                zipf.write(file_path, arcname=arcname)
+def write_file(path, data):
+    # path에 파일을 저장합니다.
+    try:
+        with open(path, 'w') as file:
+            file.write(data)
+        print(f'File saved successfully: {path}')
+    except Exception as e:
+        print(f'Failed to save file: {path}')
+        print(f'Error message: {str(e)}')
+
+
+def read_file(path):
+    try:
+        with open(path, 'r') as source_file:
+            source_code = source_file.read()
+        return source_code
+    except Exception as e:
+        print(f'Failed to read the file: {path}')
+        print(f'Error message: {str(e)}')
+        return None
 
 
 def read_specific_line(file_path, line_number):
@@ -31,3 +43,9 @@ def read_specific_line(file_path, line_number):
                 return "The line number is out of the file range."
     except FileNotFoundError:
         return "File not found."
+
+
+def check_language_version(language):
+    if language in flask_config.Config.language_dictionary:
+        return 0
+    return 400

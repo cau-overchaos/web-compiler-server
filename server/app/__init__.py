@@ -13,12 +13,12 @@ def register_router(flask_app: Flask):
 
     @flask_app.before_request
     def before_request():
+        util.clean_dir(flask_config.Config.RESULTS_FOLDER)
+        util.clean_dir(flask_config.Config.CODE_FOLDER)
         print("before_request")
 
     @flask_app.after_request
     def after_request(result):
-        util.clean_dir(flask_config.Config.RESULTS_FOLDER)
-        util.clean_dir(flask_config.Config.CODE_FOLDER)
         print("after_request", result.status_code)
         return result
 

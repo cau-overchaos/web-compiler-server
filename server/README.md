@@ -1,5 +1,7 @@
 # Getting Started
 
+* Change smaple.env file to .env file and make appropriate modifications.
+
 ```bash
 pip install pipenv
 pipenv install

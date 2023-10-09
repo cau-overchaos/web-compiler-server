@@ -1,5 +1,6 @@
 from flask import Flask
 from config import flask_config
+from provider import util
 
 
 def register_router(flask_app: Flask):
@@ -16,6 +17,8 @@ def register_router(flask_app: Flask):
 
     @flask_app.after_request
     def after_request(result):
+        util.clean_dir(flask_config.Config.RESULTS_FOLDER)
+        util.clean_dir(flask_config.Config.CODE_FOLDER)
         print("after_request", result.status_code)
         return result
 

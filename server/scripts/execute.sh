@@ -6,5 +6,5 @@ time_limit="$5"
 execute_file_name="$6"
 input_file_name="$7"
 output_file_name="$8"
-chmod 755 $execute_file_name
+chmod 755 $code_path/$execute_file_name
 sandbox run --language "$language_name" --file "$code_path/$execute_file_name" --memory $memory_limit --time $time_limit --input "$code_path/$input_file_name" --output "$result_path/$output_file_name"

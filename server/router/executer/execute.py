@@ -1,52 +1,83 @@
 from flask import jsonify, request, Blueprint, send_file
 from config import flask_config
-from provider import util, json
+from provider import util, json_util
 from provider.executer import sandbox_execute
 import os
-import zipfile
+import json
 
 execute = Blueprint('execute', __name__)
 
 
 @execute.route('/executer', methods=['POST'])
 def execute_route():
-    # 이전에 RESULTS_FOLDER에 있는 데이터를 전부 삭제
-    util.clean_dir(flask_config.Config.RESULTS_FOLDER)
+    # json 파일 받기
+    json_file = request.get_json()
 
-    code_files = request.files.get('file')
-
-    if not code_files:
-        return jsonify({'error': 'No files were uploaded.'}), 400
-
-    # 업로드된 압축 파일 저장
-    zip_file_path = os.path.join(
-        flask_config.Config.CODE_FOLDER, 'files.zip')
-    code_files.save(zip_file_path)
-
-    # 압축 파일 해제
-    with zipfile.ZipFile(zip_file_path, 'r') as zipf:
-        zipf.extractall(flask_config.Config.CODE_FOLDER)
+    # 응답 없으면 에러
+    if not json_file:
+        return jsonify({
+            'status': 'Error',
+            'message': 'No files were uploaded.',
+        }), 400
 
     # json 파일 파싱
-    config_data = json.read_json(
-        os.path.join(flask_config.Config.CODE_FOLDER, 'config.json'))
+    json_data_dict = json_util.save_json(json_file)
 
-    language_version_error = json.check_language_version(
-        config_data['language'], config_data['version'])
+    language_version_error = util.check_language_version(
+        json_data_dict['language'])
     if language_version_error != 0:
         util.clean_dir(flask_config.Config.CODE_FOLDER)
         util.clean_dir(flask_config.Config.RESULTS_FOLDER)
-        return jsonify({'error': 'language did not exist.' if language_version_error == 401 else 'language version did not exist.'}), language_version_error
+        return jsonify({
+            'status': 'Error',
+            'message': 'language did not exist.',
+        }), language_version_error
 
     # sandbox로 execute
-    result = sandbox_execute.run_script(config_data)
+    result = sandbox_execute.run_script(json_data_dict)
     print(result)
 
-    # 결과 파일들을 압축
-    util.zip_results(flask_config.Config.RESULTS_FOLDER)
+    # 컴파일 실패
+    if 'Error' in result[0]:
+        return jsonify({
+            'status': 'Fail',
+            'message': 'Compile fail.',
+            'data': {
+                'Compile fail': result[0]
+            }
+        }), 400
 
-    # 받은 파일 삭제
-    util.clean_dir(flask_config.Config.CODE_FOLDER)
+    # 실행 실패
+    if 'Error' in result[1]:
+        return jsonify({
+            'status': 'Fail',
+            'message': 'Execute fail.',
+            'data': {
+                'Execute fail': result[1]
+            }
+        }), 400
+
+    # 출력 결과
+    output_data = []
+    usage_list = []
+    for idx in range(json_data_dict['input_num']):
+        output_data.append(util.read_file(os.path.join(
+            flask_config.Config.RESULTS_FOLDER, f'output{idx}.txt')))
+        usage = util.read_specific_line(os.path.join(
+            flask_config.Config.RESULTS_FOLDER, f'execute{idx}.txt'), 3)[21:-3]
+        usage_dict = {}
+        for dct in usage.split(','):
+            key_item = dct.split(':')
+            usage_dict[key_item[0].strip()] = key_item[1].strip()
+        usage_list.append(usage_dict)
 
     # 결과 전송
-    return send_file(os.path.join(flask_config.Config.RESULTS_FOLDER, 'results.zip'), as_attachment=True)
+    return jsonify({
+        'status': 'Success',
+        'message': 'Compile and Execute Success',
+        'data': {
+            'output_num': json_data_dict['input_num'],
+            'output': output_data,
+            'resource': usage_list
+        }
+    }), 200

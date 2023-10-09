@@ -22,9 +22,14 @@ class Config(object):
 
     executable_dictionary = {'c': False, 'cpp': False, 'python': True, }
     language_dictionary = {
-        'c': ['', '99', '11', '17'],
-        'cpp': ['', '98', '11', '14', '17', '20', '2a'],
-        'python': ['', '3'],
+        'c': ['c99', 'c11', 'c17'],
+        'cpp': ['cpp98', 'cpp11', 'cpp14', 'cpp17', 'cpp20', 'cpp2a'],
+        'python': ['python3'],
+    }
+    language_extension_dictionary = {
+        'c': 'c',
+        'cpp': 'cpp',
+        'python': 'py'
     }
     CSRF_ENABLED = True
 

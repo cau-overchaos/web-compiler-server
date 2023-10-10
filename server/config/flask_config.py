@@ -6,6 +6,7 @@ load_dotenv(verbose=True)
 
 class Config(object):
     ENV = os.getenv('ENV')
+    TRUSTED_IPS = os.getenv('TRUSTED_IPS')
     HOST = os.getenv('HOST')
     PORT = os.getenv('PORT')
     ROOT_PATH = os.getcwd()

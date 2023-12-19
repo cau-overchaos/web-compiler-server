@@ -45,7 +45,6 @@ def execute_code(config_data):
                 result['Error'] = [
                     {f'Execute error at input{idx}.txt': f'exit code : {exit_code}'},
                     {f'Execute error at input{idx}.txt': f'error code : {process.returncode}'}]
-                break
         except Exception as e:
             result['Error'] = 'Exception : ' + str(e)
     return result
@@ -53,27 +52,41 @@ def execute_code(config_data):
 
 def return_result(config_data):
     # 출력 결과
-    output_data = []
-    usage_list = []
+    output_list = []
+    message = 'Compile and Execute Success'
+    resultType = 'execute_success'
     for idx in range(config_data['input_num']):
         # 출력
-        output_data.append(util.read_file(os.path.join(
-            flask_config.Config.RESULTS_FOLDER, f'output{idx}.txt')))
+        output_data = util.read_file(os.path.join(
+            flask_config.Config.RESULTS_FOLDER, f'output{idx}.txt'))
         # 리소스
         usage = util.read_specific_line(os.path.join(
             flask_config.Config.RESULTS_FOLDER, f'execute{idx}.txt'), 3)[21:-3]
+        # exit code
+        exit_code = int(util.read_specific_line(os.path.join(
+            flask_config.Config.RESULTS_FOLDER, f'execute{idx}.txt'), 4)[12:])
         usage_dict = {}
+        # 리소스 기록
         for dct in usage.split(','):
             key_item = dct.split(':')
             usage_dict[key_item[0].strip()] = key_item[1].strip()
-        usage_list.append(usage_dict)
+        usage_dict['exit_code'] = exit_code
+        if exit_code == 0:
+            usage_dict['output'] = output_data
+            usage_dict['errorDescription'] = None
+        else:
+            message = 'Excute Fail'
+            resultType = 'execute_fail'
+            usage_dict['errorDescription'] = util.read_specific_line(os.path.join(
+                flask_config.Config.RESULTS_FOLDER, f'execute{idx}.txt'), 5)[22:-2]
+            usage_dict['output'] = None
+        output_list.append(usage_dict)
 
     return jsonify({
-        'status': 'Success',
-        'message': 'Compile and Execute Success',
+        'status': 'success',
+        'message': message,
         'data': {
-            'output_num': config_data['input_num'],
-            'output': output_data,
-            'resource': usage_list
+            'resultType': resultType,
+            'result': output_list[0]
         }
     }), 200

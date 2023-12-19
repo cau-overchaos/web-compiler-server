@@ -23,7 +23,15 @@ def save_json(json_file):
         # 코드 저장
         extension_name = flask_config.Config.language_extension_dictionary[language]
         util.write_file(os.path.join(
-            flask_config.Config.CODE_FOLDER, 'main.' + extension_name), code)
+            flask_config.Config.CODE_FOLDER, 'main.' + extension_name), '#!/usr/bin/python3\n' + code if extension_name is 'py' else code)
+
+        input_list_tmp = []
+        answer_list_tmp = []
+        if not isinstance(input_list, list):
+            input_list_tmp.append(input_list)
+            answer_list_tmp.append(answer_list)
+            input_list = input_list_tmp
+            answer_list = answer_list_tmp
 
         # input 저장
         for idx, file in enumerate(input_list):

@@ -32,11 +32,19 @@ def code_compile(config_data):
             flask_config.Config.RESULTS_FOLDER, 'stdout.txt'), 3)[12:])
 
         if exit_code == 0:
-            result['Success'] = 'Compile success'
+            result['resultType'] = 'Compile success'
         else:
-            result['Error'] = [
-                {'Compile error': f'exit code : {exit_code}'},
-                {'Compile error': f'error code : {process.returncode}'}]
+            result['resultType'] = 'compile_fail'
+            result['result'] = {
+                'exit_code': exit_code,
+                # 'error_code': process.returncode,
+                'errorDescription': util.read_file(os.path.join(
+                    flask_config.Config.RESULTS_FOLDER, f'stderr.txt')),
+                'cpu_time': None,
+                'user_time': None,
+                'memory': None,
+                'output': None,
+            }
     except Exception as e:
         result['Error'] = 'Exception : ' + str(e)
     return result

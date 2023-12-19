@@ -46,6 +46,7 @@ def read_specific_line(file_path, line_number):
 
 
 def check_language_version(language):
-    if language in flask_config.Config.language_dictionary:
-        return 0
-    return 400
+    for language_type in flask_config.Config.language_dictionary:
+        if language in flask_config.Config.language_dictionary[language_type]:
+            return False
+    return True

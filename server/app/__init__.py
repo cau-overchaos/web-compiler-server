@@ -5,7 +5,7 @@ from provider import util
 
 def register_router(flask_app: Flask):
     # router 등록
-    from router.executer.execute import execute
+    from router.executor.execute import execute
     # from router.judgement.judge import judge
 
     flask_app.register_blueprint(execute)
